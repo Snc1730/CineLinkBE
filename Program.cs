@@ -282,50 +282,61 @@ app.MapPost("/api/post", (CineLinkDbContext db, Post post) =>
 
 // Join Table Endpoints
 // Associate Genre with Post
-app.MapPost("/api/PostGenre", (int postId, int genreId, CineLinkDbContext db) =>
+app.MapPost("/api/posts/{postId}/genres/{genreId}", (CineLinkDbContext db, int postId, int genreId) =>
 {
-    var post = db.Posts.Include(p => p.Genres).FirstOrDefault(p => p.Id == postId);
-
-    if (post == null)
+    try
     {
-        return Results.NotFound("Post not found.");
+        // Retrieve the post from the database
+        Post post = db.Posts.FirstOrDefault(p => p.Id == postId);
+        if (post == null)
+            return Results.NotFound("Post not found.");
+
+        // Retrieve the genre from the database
+        Genre genre = db.Genres.FirstOrDefault(g => g.Id == genreId);
+        if (genre == null)
+            return Results.NotFound("Genre not found.");
+
+        // Ensure the post's Genres collection is initialized
+        if (post.Genres == null)
+            post.Genres = new List<Genre>();
+
+        // Add the genre to the post
+        post.Genres.Add(genre);
+
+        // Save changes to the database
+        db.SaveChanges();
+
+        return Results.Ok("Genre associated with the post successfully.");
     }
-
-    var genre = db.Genres.FirstOrDefault(g => g.Id == genreId);
-
-    if (genre == null)
+    catch (Exception ex)
     {
-        return Results.NotFound("Genre not found.");
+        return Results.Problem("An error occurred while associating the genre with the post.", ex.Message);
     }
-
-    post.Genres.Add(genre);
-    db.SaveChanges();
-
-    return Results.Ok("Genre associated with post successfully.");
 });
 
 // Dissociate Genre from Post
-app.MapDelete("/api/PostGenre", (int postId, int genreId, CineLinkDbContext db) =>
+app.MapDelete("/api/GenrePost", (int postId, int genreId, CineLinkDbContext db) =>
 {
-    var post = db.Posts.Include(p => p.Genres).FirstOrDefault(p => p.Id == postId);
-
-    if (post == null)
-    {
-        return Results.NotFound("Post not found.");
-    }
-
-    var genre = db.Genres.FirstOrDefault(g => g.Id == genreId);
+    var genre = db.Genres.Include(m => m.Posts).FirstOrDefault(g => g.Id == genreId);
 
     if (genre == null)
     {
-        return Results.NotFound("Genre not found.");
+        return Results.NotFound();
     }
 
-    post.Genres.Remove(genre);
+    var postToRemove = genre.Posts.FirstOrDefault(p => p.Id == postId);
+
+    if (postToRemove == null)
+    {
+        return Results.NotFound();
+    }
+
+    genre.Posts.Remove(postToRemove);
     db.SaveChanges();
 
-    return Results.Ok("Genre dissociated from post successfully.");
+    return Results.Ok("Genre Removed From Post Successfully");
 });
+
 
 // Add Film to Watchlist
 app.MapPost("/api/Watchlist", (int userId, int postId, CineLinkDbContext db) =>
