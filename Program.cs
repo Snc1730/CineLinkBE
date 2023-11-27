@@ -56,6 +56,80 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Genre Endpoints
+// Create Genre
+app.MapPost("/api/genre", (CineLinkDbContext db, Genre genre) =>
+{
+    db.Genres.Add(genre);
+    db.SaveChanges();
+    return Results.Created($"/api/genre/{genre.Id}", genre);
+});
+
+// Get All Genres
+app.MapGet("/api/genres", (CineLinkDbContext db) =>
+{
+    var genres = db.Genres.OrderBy(g => g.Id).ToList();
+    return Results.Ok(genres);
+});
+
+// Get Single Genre by ID
+app.MapGet("/api/genre/{id}", (CineLinkDbContext db, int id) =>
+{
+    var genre = db.Genres.SingleOrDefault(g => g.Id == id);
+    if (genre == null)
+    {
+        return Results.NotFound();
+    }
+    else
+    {
+        return Results.Ok(genre);
+    }
+});
+
+//Get Post Genres for a specific post
+app.MapGet("/api/posts/{postId}/postgenres", (CineLinkDbContext db, int postId) =>
+{
+    var post = db.Posts.Include(o => o.Genres).SingleOrDefault(o => o.Id == postId);
+    if (post == null)
+    {
+        return Results.NotFound("Post not found.");
+    }
+
+    var postGenres = post.Genres;
+    return Results.Ok(postGenres);
+});
+
+// Update Genre
+app.MapPut("/api/genre/{id}", (CineLinkDbContext db, int id, Genre updatedGenre) =>
+{
+    var existingGenre = db.Genres.SingleOrDefault(g => g.Id == id);
+    if (existingGenre == null)
+    {
+        return Results.NotFound();
+    }
+
+    // Update the genre properties
+    existingGenre.Name = updatedGenre.Name;
+    // Update other properties as needed...
+
+    db.SaveChanges();
+    return Results.Ok();
+});
+
+// Delete Genre
+app.MapDelete("/api/genre/{id}", (CineLinkDbContext db, int id) =>
+{
+    var genre = db.Genres.SingleOrDefault(g => g.Id == id);
+    if (genre == null)
+    {
+        return Results.NotFound();
+    }
+
+    db.Genres.Remove(genre);
+    db.SaveChanges();
+    return Results.NoContent();
+});
+
 // User Endpoints
 // Check if user exists
 app.MapGet("/checkuser/{uid}", (CineLinkDbContext db, string uid) =>
