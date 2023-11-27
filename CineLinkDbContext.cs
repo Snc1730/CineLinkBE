@@ -24,8 +24,8 @@ public class CineLinkDbContext : DbContext
         );
 
         modelBuilder.Entity<Post>().HasData(
-            new Post { Id = 1, UserId = 1, Title = "Movie Title 1", ImageUrl = "image_url_1", Description = "Description 1", Genre = "Genre 1", Length = "2 hours", DatePosted = DateTime.Now /* Add other properties */ },
-            new Post { Id = 2, UserId = 2, Title = "Movie Title 2", ImageUrl = "image_url_2", Description = "Description 2", Genre = "Genre 2", Length = "1 hour 30 minutes", DatePosted = DateTime.Now /* Add other properties */ }
+            new Post { Id = 1, UserId = 1, Title = "Movie Title 1", ImageUrl = "image_url_1", Description = "Description 1", Length = "2 hours", DatePosted = DateTime.Now /* Add other properties */ },
+            new Post { Id = 2, UserId = 2, Title = "Movie Title 2", ImageUrl = "image_url_2", Description = "Description 2", Length = "1 hour 30 minutes", DatePosted = DateTime.Now /* Add other properties */ }
             // Add more sample posts as needed
 );
 
