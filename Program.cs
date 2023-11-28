@@ -199,7 +199,9 @@ app.MapPut("/api/review/{id}", (CineLinkDbContext db, int id, Review updatedRevi
     }
 
     // Update the review properties
-    // Assuming properties like Content, Rating, etc., need to be updated
+    existingReview.Content = updatedReview.Content;
+    existingReview.Rating = updatedReview.Rating;
+    // Update other properties as needed
 
     db.SaveChanges();
     return Results.Ok();
