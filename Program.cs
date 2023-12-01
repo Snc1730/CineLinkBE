@@ -246,12 +246,16 @@ app.MapPut("/api/post/{id}", (CineLinkDbContext db, int id, Post updatedPost) =>
         return Results.NotFound();
     }
 
-    // Update the post properties
-    // Assuming properties like Title, ImageUrl, Description, etc., need to be updated
+    // Update the post properties based on the received updatedPost
+    existingPost.Title = updatedPost.Title;
+    existingPost.ImageUrl = updatedPost.ImageUrl;
+    existingPost.Description = updatedPost.Description;
+    existingPost.Length = updatedPost.Length;
 
     db.SaveChanges();
     return Results.Ok();
 });
+
 
 // Get All Posts
 app.MapGet("/api/posts", (CineLinkDbContext db) =>
