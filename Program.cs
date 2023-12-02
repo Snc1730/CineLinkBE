@@ -86,19 +86,6 @@ app.MapGet("/api/genre/{id}", (CineLinkDbContext db, int id) =>
     }
 });
 
-//Get Post Genres for a specific post
-app.MapGet("/api/posts/{postId}/postgenres", (CineLinkDbContext db, int postId) =>
-{
-    var post = db.Posts.Include(o => o.Genres).SingleOrDefault(o => o.Id == postId);
-    if (post == null)
-    {
-        return Results.NotFound("Post not found.");
-    }
-
-    var postGenres = post.Genres;
-    return Results.Ok(postGenres);
-});
-
 // Update Genre
 app.MapPut("/api/genre/{id}", (CineLinkDbContext db, int id, Genre updatedGenre) =>
 {
@@ -388,6 +375,33 @@ app.MapDelete("/api/Watchlist", (int userId, int postId, CineLinkDbContext db) =
     db.SaveChanges();
 
     return Results.Ok("Post removed from watchlist successfully.");
+});
+
+// Get user's watchlist
+app.MapGet("/api/UserWatchlist/{userId}", (CineLinkDbContext db, int userId) =>
+{
+    var user = db.Users.Include(u => u.Posts).FirstOrDefault(u => u.Id == userId);
+
+    if (user == null)
+    {
+        return Results.NotFound("User not found.");
+    }
+
+    var watchlist = user.Posts;
+    return Results.Ok(watchlist);
+});
+
+//Get Post Genres for a specific post
+app.MapGet("/api/posts/{postId}/postgenres", (CineLinkDbContext db, int postId) =>
+{
+    var post = db.Posts.Include(o => o.Genres).SingleOrDefault(o => o.Id == postId);
+    if (post == null)
+    {
+        return Results.NotFound("Post not found.");
+    }
+
+    var postGenres = post.Genres;
+    return Results.Ok(postGenres);
 });
 
 app.Run();
