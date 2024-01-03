@@ -72,6 +72,22 @@ app.MapGet("/api/genres", (CineLinkDbContext db) =>
     return Results.Ok(genres);
 });
 
+// Get Movies by Genre
+app.MapGet("/api/movies/genres/{genreId}", (CineLinkDbContext db, int genreId) =>
+{
+    try
+    {
+        // Retrieve movies directly associated with the specified genre
+        var movies = db.Posts.Where(p => p.Genres.Any(g => g.Id == genreId)).ToList();
+
+        return Results.Ok(movies);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem("An error occurred while fetching movies by genre.", ex.Message);
+    }
+});
+
 // Get Single Genre by ID
 app.MapGet("/api/genre/{id}", (CineLinkDbContext db, int id) =>
 {
@@ -377,19 +393,39 @@ app.MapDelete("/api/Watchlist", (int userId, int postId, CineLinkDbContext db) =
     return Results.Ok("Post removed from watchlist successfully.");
 });
 
-// Get user's watchlist
+// Get user's watchlist with genres (excluding posts within each genre)
 app.MapGet("/api/UserWatchlist/{userId}", (CineLinkDbContext db, int userId) =>
 {
-    var user = db.Users.Include(u => u.Posts).FirstOrDefault(u => u.Id == userId);
+    var user = db.Users
+        .Include(u => u.Posts)
+        .ThenInclude(p => p.Genres) // Include genres associated with posts
+        .FirstOrDefault(u => u.Id == userId);
 
     if (user == null)
     {
         return Results.NotFound("User not found.");
     }
 
-    var watchlist = user.Posts;
+    var watchlist = user.Posts.Select(post => new
+    {
+        post.Id,
+        post.UserId,
+        post.Title,
+        post.ImageUrl,
+        post.Description,
+        post.Length,
+        post.DatePosted,
+        Genres = post.Genres.Select(genre => new
+        {
+            genre.Id,
+            genre.Name,
+            genre.Description
+        }).ToList()
+    }).ToList();
+
     return Results.Ok(watchlist);
 });
+
 
 //Get Post Genres for a specific post
 app.MapGet("/api/posts/{postId}/postgenres", (CineLinkDbContext db, int postId) =>
