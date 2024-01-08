@@ -225,6 +225,14 @@ app.MapPost("/api/review", (CineLinkDbContext db, Review review) =>
     return Results.Created($"/api/review/{review.Id}", review);
 });
 
+// Get All Ratings
+app.MapGet("/api/ratings", (CineLinkDbContext db) =>
+{
+    var allReviews = db.Reviews.ToList();
+    return Results.Ok(allReviews);
+});
+
+
 // Post Endpoints
 // Delete Post by id
 app.MapDelete("/api/post/{id}", (CineLinkDbContext db, int id) =>
